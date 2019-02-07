@@ -1,0 +1,188 @@
+/*
+ * Copyright 2013 Gateworks Corporation
+ *
+ * The code contained herein is licensed under the GNU General Public
+ * License. You may obtain a copy of the GNU General Public License
+ * Version 2 or later at the following locations:
+ *
+ * http://www.opensource.org/licenses/gpl-license.html
+ * http://www.gnu.org/copyleft/gpl.html
+ */
+
+/dts-v1/;
+#include "imx6q.dtsi"
+#include "imx6qdl-gw52xx.dtsi"
+#include <dt-bindings/leds/leds-pca955x.h>
+#include <dt-bindings/input/linux-event-codes.h>
+
+/ {
+	model = "PIAP Gateworks Ventana i.MX6 Dual/Quad GW52XX";
+	compatible = "gw,imx6q-gw52xx", "gw,ventana", "fsl,imx6q";
+};
+
+&i2c3 {
+	adv7180: camera@20 {
+		compatible = "adi,adv7180";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_adv7180>;
+		reg = <0x20>;
+		powerdown-gpios = <&gpio3 31 GPIO_ACTIVE_LOW>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <30 IRQ_TYPE_LEVEL_LOW>;
+
+		port {
+			adv7180_to_ipu2_csi1_mux: endpoint {
+				remote-endpoint = <&ipu2_csi1_mux_from_parallel_sensor>;
+				bus-width = <8>;
+			};
+		};
+	};
+};
+
+&ipu2_csi1_from_ipu2_csi1_mux {
+	bus-width = <8>;
+};
+
+&ipu2_csi1_mux_from_parallel_sensor {
+	remote-endpoint = <&adv7180_to_ipu2_csi1_mux>;
+	bus-width = <8>;
+};
+
+&ipu2_csi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ipu2_csi1>;
+};
+
+&iomuxc {
+	pinctrl_adv7180: adv7180grp {
+		fsl,pins = <
+			MX6QDL_PAD_EIM_D30__GPIO3_IO30          0x0001b0b0
+			MX6QDL_PAD_EIM_D31__GPIO3_IO31          0x4001b0b0
+		>;
+	};
+
+	pinctrl_ipu2_csi1: ipu2_csi1grp {
+		fsl,pins = <
+			MX6QDL_PAD_EIM_EB2__IPU2_CSI1_DATA19    0x1b0b0
+			MX6QDL_PAD_EIM_D16__IPU2_CSI1_DATA18    0x1b0b0
+			MX6QDL_PAD_EIM_D18__IPU2_CSI1_DATA17    0x1b0b0
+			MX6QDL_PAD_EIM_D19__IPU2_CSI1_DATA16    0x1b0b0
+			MX6QDL_PAD_EIM_D20__IPU2_CSI1_DATA15    0x1b0b0
+			MX6QDL_PAD_EIM_D26__IPU2_CSI1_DATA14    0x1b0b0
+			MX6QDL_PAD_EIM_D27__IPU2_CSI1_DATA13    0x1b0b0
+			MX6QDL_PAD_EIM_A17__IPU2_CSI1_DATA12    0x1b0b0
+			MX6QDL_PAD_EIM_D29__IPU2_CSI1_VSYNC     0x1b0b0
+			MX6QDL_PAD_EIM_EB3__IPU2_CSI1_HSYNC     0x1b0b0
+			MX6QDL_PAD_EIM_A16__IPU2_CSI1_PIXCLK    0x1b0b0
+		>;
+	};
+};
+
+&sata {
+	status = "okay";
+};
+
+&i2c3 {
+	pcaioexp: gpio@70 {
+		compatible = "nxp,pca9538";
+		reg = <0x70>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	pca9551: pca9551@60 {
+		compatible = "nxp,pca9551";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x60>;
+
+		/*
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-line-names = "GPIO0", "GPIO1", "GPIO2", "GPIO3", "GPIO4", "GPIO5", "GPIO6", "GPIO7";
+		*/
+
+		led@0 {
+			label = "pca9551_0";
+			reg = <0>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		/*
+		gpio@0 {
+			reg = <0>;
+			type = <PCA955X_TYPE_GPIO>;
+		};
+		*/
+		led@1 {
+			label = "pca9551_1";
+			reg = <1>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		led@2 {
+			label = "pca9551_2";
+			reg = <2>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		led@3 {
+			label = "pca9551_3";
+			reg = <3>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		led@4 {
+			label = "pca9551_4";
+			reg = <4>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		led@5 {
+			label = "pca9551_5";
+			reg = <5>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		led@6 {
+			label = "pca9551_6";
+			reg = <6>;
+			type = <PCA955X_TYPE_LED>;
+		};
+		led@7 {
+			label = "pca9551_7";
+			reg = <7>;
+			type = <PCA955X_TYPE_LED>;
+		};
+	};
+};
+
+/ {
+	polled_keyboard {
+		compatible = "gpio-keys-polled";
+		poll-interval = <50>;
+		autorepeat;
+
+		button0 {
+			label = "button0";
+			linux,code = <KEY_LEFT>;
+			gpios = <&pcaioexp 0 1>;
+		};
+		button1 {
+			label = "button1";
+			linux,code = <KEY_ENTER>;
+			gpios = <&pcaioexp 1 1>;
+		};
+		button2 {
+			label = "button2";
+			linux,code = <KEY_UP>;
+			gpios = <&pcaioexp 2 1>;
+		};
+		button3 {
+			label = "button3";
+			linux,code = <KEY_RIGHT>;
+			gpios = <&pcaioexp 3 1>;
+		};
+		button4 {
+			label = "button4";
+			linux,code = <KEY_DOWN>;
+			gpios = <&pcaioexp 4 1>;
+		};
+	};
+};
+
